@@ -86,46 +86,28 @@ func main() {
 	}
 
 	if packageFile != "" {
-		currentDirectory, err := os.Getwd()
+		err := client.LoadPackageFile(packageFile)
 		if err != nil {
 			reportError(err)
-		}
-
-		err = client.LoadPackageFile(currentDirectory + "/" + packageFile)
-		if err != nil {
-			reportError(err)
-		}
-
-		if packageName == "" {
-			packageName = packageFile
 		}
 	}
 
-	client.appendURLParts([]string{
-		repo,
-		epoch,
-		db,
-		arch,
-		packageName,
-	})
+	if packageName == "" && packageFile != "" {
+		packageName = packageFile
+	}
+
+	client.appendURLParts([]string{repo, epoch, db, arch, packageName})
 
 	apiResponse, err := client.Do()
 	if err != nil {
 		reportError(err)
 	}
 
-	output := apiResponse.String()
-
 	if jsonOutput {
-		output, err = apiResponse.toJSON()
-		if err != nil {
-			reportError(err)
-		}
+		apiResponse.jsonOutput = true
 	}
 
-	if output != "" {
-		fmt.Println(output)
-	}
+	fmt.Println(apiResponse.getOutput())
 }
 
 func reportError(err error) {

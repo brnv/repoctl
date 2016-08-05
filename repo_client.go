@@ -13,20 +13,34 @@ import (
 )
 
 type APIResponse struct {
-	Success bool                `json:"success"`
-	Error   string              `json:"error"`
-	Data    map[string][]string `json:"data"`
+	Success    bool                `json:"success"`
+	Error      string              `json:"error"`
+	Data       map[string][]string `json:"data"`
+	jsonOutput bool
 }
 
 const (
 	formPackageFile = "package_file"
 )
 
-func (response *APIResponse) String() string {
+func (response *APIResponse) getOutput() string {
+	if response.jsonOutput {
+		output, err := response.toJSON()
+		if err != nil {
+			return err.Error()
+		}
+
+		return output
+	}
+
 	if !response.Success {
 		return response.Error
 	}
 
+	return response.String()
+}
+
+func (response *APIResponse) String() string {
 	output := ""
 
 	for _, list := range response.Data {
@@ -95,9 +109,12 @@ func (client *RepoClient) Do() (APIResponse, error) {
 }
 
 func (client *RepoClient) LoadPackageFile(packageFile string) error {
-	var err error
+	currentDirectory, err := os.Getwd()
+	if err != nil {
+		reportError(err)
+	}
 
-	client.packageFile, err = os.Open(packageFile)
+	client.packageFile, err = os.Open(currentDirectory + "/" + packageFile)
 	if err != nil {
 		return err
 	}
