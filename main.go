@@ -66,6 +66,10 @@ func main() {
 		jsonOutput = args["--json"].(bool)
 	)
 
+	if packageName == "" && packageFile != "" {
+		packageName = packageFile
+	}
+
 	client := NewRepodClient(repodAddress, repodVersion)
 	{
 		if modeList || modeShow {
@@ -83,20 +87,16 @@ func main() {
 		if modeEdit {
 			client.method = "PATCH"
 		}
-	}
 
-	if packageFile != "" {
-		err := client.LoadPackageFile(packageFile)
-		if err != nil {
-			reportError(err)
+		if packageFile != "" {
+			err := client.LoadPackageFile(packageFile)
+			if err != nil {
+				reportError(err)
+			}
 		}
-	}
 
-	if packageName == "" && packageFile != "" {
-		packageName = packageFile
+		client.appendURLParts([]string{repo, epoch, db, arch, packageName})
 	}
-
-	client.appendURLParts([]string{repo, epoch, db, arch, packageName})
 
 	apiResponse, err := client.Do()
 	if err != nil {
@@ -107,7 +107,7 @@ func main() {
 		apiResponse.jsonOutput = true
 	}
 
-	fmt.Println(apiResponse.getOutput())
+	fmt.Print(apiResponse.getOutput())
 }
 
 func reportError(err error) {
