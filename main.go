@@ -11,8 +11,6 @@ var version = "1.0"
 
 var usage = `repoctl - repod client.
 
-Description required.
-
 Usage:
     repoctl [options] [-v] -L
     repoctl [options] [-v] -L <repo> <epoch> <db> <arch>
